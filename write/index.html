@@ -250,7 +250,7 @@
   function photoAdder(onAdd, multiple) {
     var lab = document.createElement('label'); lab.className = 'ph-add';
     lab.innerHTML = '<b>＋</b>사진';
-    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*,.heic,.heif'; if (multiple) inp.multiple = true;
+    var inp = document.createElement('input'); inp.type = 'file'; /* 맥·윈도에서 사진이 흐리게 가려지지 않도록 형식 제한을 두지 않음 — 읽을 수 없는 파일은 안내 문구로 걸러냄 */ if (multiple) inp.multiple = true;
     inp.addEventListener('change', function () {
       var files = Array.prototype.slice.call(inp.files), room = lab._room ? lab._room() : files.length;
       if (files.length > room) { noteAfter = '카드 한 장에는 사진 2장까지예요. 앞의 ' + room + '장만 넣었어요.'; files = files.slice(0, room); }
