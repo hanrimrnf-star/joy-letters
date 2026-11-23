@@ -13,7 +13,7 @@
   <link rel="preload" href="{{ '/assets/fonts/Paperlogy-4Regular.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
 </head>
-<body>
+<body{% if page.theme and page.theme != 'sky' %} class="theme-{{ page.theme }}"{% endif %}>
   <header class="masthead">
     <a class="brand" href="{{ '/' | relative_url }}">
       <img class="brand-logo" src="{{ '/assets/logo.png' | relative_url }}" alt="{{ site.title }} — 기쁨으로 여호와를 섬기며 노래하면서 그의 앞에 나아갈지어다 (시편 100편 2절)" width="1400" height="604">
