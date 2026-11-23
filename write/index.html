@@ -40,6 +40,8 @@
   .ph-add { width: 92px; height: 92px; border-radius: 10px; border: 1.5px dashed #9cc7ec; color: var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 700; cursor: pointer; background: #f5faff; }
   .ph-add b { font-size: 22px; line-height: 1; }
   .ph-add input { display: none; }
+  .photos.drop { outline: 2.5px dashed var(--accent); outline-offset: 4px; border-radius: 12px; background: var(--accent-soft); }
+  .drop-hint { font-size: 12px; color: var(--ink-soft); margin: 6px 0 0; }
 
   .card-ed { border: 1px solid var(--line); border-radius: 16px; padding: 16px; background: #fbfdff; }
   .card-ed + .card-ed { margin-top: 12px; }
@@ -147,7 +149,7 @@
       <h2>본문 카드 <span class="chip" id="cardCount">0장</span></h2>
       <div id="cards"></div>
       <button class="btn add-card" id="addCard" type="button">＋ 카드 추가</button>
-      <p class="hint">카드 한 장 = 사진 0~2장 + 한 단락. 사진이 없으면 강조 카드로 보여요.<br>기도·후원 상자는 맨 아래에 자동으로 붙습니다.</p>
+      <p class="hint">사진은 <b>＋ 사진</b>을 누르거나, Finder에서 사진 칸으로 <b>끌어다 놓거나</b>, 복사한 뒤 <b>⌘V</b>로 붙여넣어도 돼요.<br>카드 한 장 = 사진 0~2장 + 한 단락. 사진이 없으면 강조 카드로 보여요.<br>기도·후원 상자는 맨 아래에 자동으로 붙습니다.</p>
     </section>
 
     <section class="panel publish">
@@ -258,6 +260,31 @@
     });
     lab.appendChild(inp); return lab;
   }
+  function imageFiles(list) { return Array.prototype.slice.call(list || []).filter(function (f) { return f.kind ? f.kind === 'file' : true; }).map(function (f) { return f.getAsFile ? f.getAsFile() : f; }).filter(Boolean); }
+  function droppable(box, room, onAdd) {
+    ['dragenter', 'dragover'].forEach(function (ev) { box.addEventListener(ev, function (e) { e.preventDefault(); box.classList.add('drop'); }); });
+    ['dragleave', 'drop'].forEach(function (ev) { box.addEventListener(ev, function (e) { e.preventDefault(); box.classList.remove('drop'); }); });
+    box.addEventListener('drop', function (e) {
+      var files = imageFiles(e.dataTransfer.files), r = room();
+      if (!files.length) { toast('사진 파일을 끌어다 놓아 주세요.'); return; }
+      if (r <= 0) { toast('이미 사진이 가득 찼어요. 먼저 사진을 빼 주세요.'); return; }
+      if (files.length > r) { noteAfter = '사진은 ' + r + '장만 더 들어가서 앞의 ' + r + '장만 넣었어요.'; files = files.slice(0, r); }
+      files.forEach(function (f) { shrink(f, onAdd); });
+    });
+    box._paste = { room: room, onAdd: onAdd };
+  }
+  /* ⌘V 붙여넣기: 마지막으로 누른 사진 칸(없으면 첫 빈 칸)에 넣음 */
+  var pasteTarget = null;
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.photos'); if (b && b._paste) pasteTarget = b; }, true);
+  document.addEventListener('paste', function (e) {
+    var files = imageFiles(e.clipboardData && e.clipboardData.items).filter(function (f) { return /^image\//.test(f.type) || isHeic(f); });
+    if (!files.length) return;
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('.photos')).filter(function (b) { return b._paste && b._paste.room() > 0; });
+    var box = (pasteTarget && document.body.contains(pasteTarget) && pasteTarget._paste.room() > 0) ? pasteTarget : boxes[0];
+    if (!box) { toast('사진을 넣을 빈 칸이 없어요. 카드를 추가해 주세요.'); return; }
+    e.preventDefault();
+    files.slice(0, box._paste.room()).forEach(function (f) { shrink(f, box._paste.onAdd); });
+  });
   function thumb(src, onRemove) {
     var d = document.createElement('div'); d.className = 'ph'; d.style.backgroundImage = 'url(' + src + ')';
     var b = document.createElement('button'); b.type = 'button'; b.textContent = '×'; b.title = '사진 빼기'; b.onclick = onRemove;
@@ -277,6 +304,7 @@
     var box = $('#coverBox'); box.innerHTML = '';
     if (state.cover) box.appendChild(thumb(srcOf(state.cover), function () { state.cover = null; changed(); renderCover(); }));
     else box.appendChild(photoAdder(function (d) { state.cover = d; changed(); renderCover(); }));
+    if (!box._paste) droppable(box, function () { return state.cover ? 0 : 1; }, function (d) { state.cover = d; changed(); renderCover(); });
   }
 
   function renderCards() {
@@ -293,6 +321,7 @@
         '<label class="f">글</label><textarea class="fi" data-k="text" placeholder="한 단락 정도의 글을 붙여넣으세요"></textarea>';
       var ph = el.querySelector('.photos');
       c.photos.forEach(function (p, j) { ph.appendChild(thumb(srcOf(p), function () { c.photos.splice(j, 1); changed(); renderCards(); })); });
+      droppable(ph, function () { return 2 - c.photos.length; }, function (d) { if (c.photos.length < 2) { c.photos.push(d); changed(); renderCards(); } });
       if (c.photos.length < 2) { var ad = photoAdder(function (d) { if (c.photos.length < 2) { c.photos.push(d); changed(); renderCards(); } }, true); ad._room = function () { return 2 - c.photos.length; }; ph.appendChild(ad); }
       el.querySelectorAll('[data-k]').forEach(function (f) {
         var k = f.getAttribute('data-k'); f.value = c[k] || '';
