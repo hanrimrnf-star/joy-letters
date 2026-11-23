@@ -1,26 +1,49 @@
 ---
 layout: default
 ---
-<article class="letter">
-  <div class="letter-head">
-    <p class="letter-meta">
-      {% if page.number %}<span class="letter-no">제{{ page.number }}호</span>{% endif %}
-      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%Y년 %-m월 %-d일" }}</time>
-    </p>
-    <h1>{{ page.title }}</h1>
-    {% if page.verse %}<p class="letter-verse">{{ page.verse }}</p>{% endif %}
-  </div>
+{%- comment -%}
+  본문을 '---'(가로줄) 기준으로 잘라 카드로 만듭니다.
+  사진 경로는 파일 이름만 써도 images 폴더에서 찾아오도록 바꿔 줍니다.
+{%- endcomment -%}
+{%- assign img_base = '/images/' | relative_url -%}
+{%- assign body = content
+    | replace: 'src="', 'src="@@'
+    | replace: 'src="@@http', 'src="http'
+    | replace: 'src="@@/', 'src="/'
+    | replace: 'src="@@', 'src="__IMG__'
+    | replace: '__IMG__', img_base -%}
+{%- assign cards = body | split: '<hr />' -%}
 
-  {% if page.cover %}
-  <figure class="letter-cover"><img src="{{ page.cover | relative_url }}" alt=""></figure>
-  {% endif %}
+<div class="progress" aria-hidden="true"><span></span></div>
 
-  <div class="letter-body">
-    {{ content }}
-  </div>
+<article class="deck">
+  <header class="card card-cover reveal">
+    {% if page.cover %}<div class="cover-bg" style="background-image:url('{{ page.cover | relative_url }}')"></div>{% endif %}
+    <div class="cover-inner">
+      <p class="letter-meta">
+        {% if page.number %}<span class="letter-no">제{{ page.number }}호</span>{% endif %}
+        <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%Y년 %-m월 %-d일" }}</time>
+      </p>
+      <h1>{{ page.title }}</h1>
+      {% if page.verse %}<p class="letter-verse">{{ page.verse }}</p>{% endif %}
+      <p class="scroll-hint">아래로 넘겨 주세요 ↓</p>
+    </div>
+  </header>
+
+  {% for c in cards %}
+    {%- assign trimmed = c | strip -%}
+    {%- if trimmed != "" -%}
+    {%- if trimmed contains '<img' %}{% assign kind = 'has-photo' %}{% else %}{% assign kind = 'text-only' %}{% endif -%}
+    {%- assign n_img = trimmed | split: '<img' | size | minus: 1 -%}
+  <section class="card {{ kind }}{% if n_img >= 2 %} two-photos{% endif %} reveal">
+    <span class="card-no">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+    {{ trimmed }}
+  </section>
+    {%- endif -%}
+  {% endfor %}
 
   {% if page.prayer %}
-  <section class="prayer">
+  <section class="card card-prayer reveal">
     <h2>함께 기도해 주세요</h2>
     <ol>
       {% for item in page.prayer %}<li>{{ item }}</li>{% endfor %}
@@ -28,23 +51,40 @@ layout: default
   </section>
   {% endif %}
 
-  <div class="letter-tools">
-    <button type="button" onclick="copyLink(this)">링크 복사</button>
-    <button type="button" onclick="window.print()">인쇄 · PDF 저장</button>
-  </div>
-
-  <nav class="letter-nav">
-    {% if page.previous %}
-    <a class="prev" href="{{ page.previous.url | relative_url }}"><small>이전 서신</small>{{ page.previous.title }}</a>
-    {% else %}<span></span>{% endif %}
-    {% if page.next %}
-    <a class="next" href="{{ page.next.url | relative_url }}"><small>다음 서신</small>{{ page.next.title }}</a>
-    {% else %}<span></span>{% endif %}
-  </nav>
-  <p class="back"><a href="{{ '/' | relative_url }}">← 서신 목록으로</a></p>
+  <footer class="card card-end reveal">
+    <p class="end-sign">{% if page.sign %}{{ page.sign }}{% else %}주 안에서, {{ site.author }} 드림{% endif %}</p>
+    <div class="letter-tools">
+      <button type="button" onclick="copyLink(this)">링크 복사</button>
+      <a href="{{ '/' | relative_url }}">다른 서신 보기</a>
+    </div>
+    <nav class="letter-nav">
+      {% if page.previous %}<a href="{{ page.previous.url | relative_url }}"><small>← 이전 서신</small>{{ page.previous.title }}</a>{% else %}<span></span>{% endif %}
+      {% if page.next %}<a class="next" href="{{ page.next.url | relative_url }}"><small>다음 서신 →</small>{{ page.next.title }}</a>{% else %}<span></span>{% endif %}
+    </nav>
+  </footer>
 </article>
 
 <script>
+(function () {
+  var cards = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+    cards.forEach(function (c) { io.observe(c); });
+  } else {
+    cards.forEach(function (c) { c.classList.add('in'); });
+  }
+  var bar = document.querySelector('.progress span');
+  function onScroll() {
+    var h = document.documentElement;
+    var p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
+    bar.style.transform = 'scaleX(' + Math.min(1, p) + ')';
+  }
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+})();
 function copyLink(btn) {
   var url = location.href;
   var done = function () { var t = btn.textContent; btn.textContent = '복사했어요'; setTimeout(function () { btn.textContent = t; }, 1600); };

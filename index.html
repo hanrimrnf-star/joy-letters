@@ -5,43 +5,47 @@ layout: default
   <p>{{ site.description }}</p>
 </section>
 
+{%- assign img_base = '/images/' | relative_url -%}
 {% assign letters = site.posts %}
 {% if letters.size == 0 %}
 <p class="empty">아직 띄운 서신이 없습니다. 곧 첫 편지로 찾아뵙겠습니다.</p>
 {% else %}
-
-{% assign latest = letters.first %}
-<a class="latest" href="{{ latest.url | relative_url }}">
-  <span class="latest-label">최근 서신</span>
-  <span class="letter-meta">
-    {% if latest.number %}<span class="letter-no">제{{ latest.number }}호</span>{% endif %}
-    <time>{{ latest.date | date: "%Y년 %-m월 %-d일" }}</time>
-  </span>
-  <span class="latest-title">{{ latest.title }}</span>
-  <span class="latest-excerpt">{% if latest.summary %}{{ latest.summary }}{% else %}{{ latest.excerpt | strip_html | strip_newlines | truncate: 160 }}{% endif %}</span>
-  <span class="read-more">읽기 →</span>
-</a>
-
-{% if letters.size > 1 %}
-<section class="archive">
-  <h2>지난 서신</h2>
-  {% assign rest = letters | slice: 1, letters.size %}
-  {% assign years = rest | group_by_exp: "p", "p.date | date: '%Y'" %}
-  {% for year in years %}
-  <div class="year">
-    <h3>{{ year.name }}</h3>
-    <ul>
-      {% for p in year.items %}
-      <li>
-        <a href="{{ p.url | relative_url }}">
-          <span class="row-date">{{ p.date | date: "%-m.%-d" }}</span>
-          <span class="row-title">{% if p.number %}<span class="letter-no">제{{ p.number }}호</span> {% endif %}{{ p.title }}</span>
-        </a>
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
+<div class="shelf">
+  {% for p in letters %}
+    {%- assign thumb = "" -%}
+    {%- if p.cover -%}
+      {%- assign thumb = p.cover | relative_url -%}
+    {%- elsif p.content contains '<img' -%}
+      {%- assign parts = p.content | split: 'src="' -%}
+      {%- assign raw = parts[1] | split: '"' | first -%}
+      {%- assign head = raw | slice: 0, 1 -%}
+      {%- assign head4 = raw | slice: 0, 4 -%}
+      {%- if head == "/" or head4 == "http" -%}{%- assign thumb = raw -%}{%- else -%}{%- assign thumb = img_base | append: raw -%}{%- endif -%}
+    {%- endif -%}
+  <a class="shelf-card reveal{% if forloop.first %} is-latest{% endif %}" href="{{ p.url | relative_url }}">
+    <span class="shelf-photo"{% if thumb != "" %} style="background-image:url('{{ thumb }}')"{% endif %}>
+      {% if forloop.first %}<span class="latest-label">최근 서신</span>{% endif %}
+    </span>
+    <span class="shelf-text">
+      <span class="letter-meta">
+        {% if p.number %}<span class="letter-no">제{{ p.number }}호</span>{% endif %}
+        <time>{{ p.date | date: "%Y. %-m. %-d." }}</time>
+      </span>
+      <span class="shelf-title">{{ p.title }}</span>
+      {% if forloop.first %}<span class="shelf-excerpt">{% if p.summary %}{{ p.summary }}{% else %}{{ p.content | split: '<hr />' | first | strip_html | strip_newlines | truncate: 110 }}{% endif %}</span>{% endif %}
+    </span>
+  </a>
   {% endfor %}
-</section>
+</div>
 {% endif %}
-{% endif %}
+
+<script>
+(function () {
+  var els = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  els.forEach(function (e) { io.observe(e); });
+})();
+</script>
