@@ -33,7 +33,7 @@ layout: default
   {% for c in cards %}
     {%- assign trimmed = c | strip -%}
     {%- if trimmed != "" -%}
-    {%- if trimmed contains '<img' %}{% assign kind = 'has-photo' %}{% else %}{% assign kind = 'text-only' %}{% endif -%}
+    {%- if trimmed contains 'class="yt"' %}{% assign kind = 'has-video' %}{% elsif trimmed contains '<img' %}{% assign kind = 'has-photo' %}{% else %}{% assign kind = 'text-only' %}{% endif -%}
     {%- assign n_img = trimmed | split: '<img' | size | minus: 1 -%}
   <section class="card {{ kind }}{% if n_img >= 2 %} two-photos{% endif %} reveal">
     <span class="card-no">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
@@ -120,6 +120,17 @@ layout: default
   document.querySelectorAll('.card img').forEach(function (img) {
     function mark() { if (img.naturalHeight > img.naturalWidth) img.classList.add('portrait'); }
     if (img.complete) mark(); else img.addEventListener('load', mark);
+  });
+  document.querySelectorAll('.yt').forEach(function (box) {
+    var a = box.querySelector('.yt-thumb'); if (!a) return;
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      var f = document.createElement('iframe');
+      f.src = 'https://www.youtube-nocookie.com/embed/' + box.getAttribute('data-id') + '?autoplay=1&rel=0&playsinline=1';
+      f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      f.allowFullscreen = true; f.title = '유튜브 영상';
+      a.replaceWith(f);
+    });
   });
   var bar = document.querySelector('.progress span');
   function onScroll() {

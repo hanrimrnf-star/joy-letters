@@ -202,6 +202,18 @@ main { max-width: 920px; margin: 0 auto; padding: 0 18px 72px; }
 .colophon-support { margin-top: 10px !important; }
 
 
+/* 추천 영상 카드 */
+.card > .yt { order: -1; position: relative; }
+.yt-thumb, .yt iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 12px; background: #1d3247 center / cover no-repeat; }
+.yt-thumb { position: relative; overflow: hidden; }
+.yt-thumb::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,25,45,.35), rgba(10,25,45,0) 55%); }
+.yt-play { position: absolute; z-index: 1; left: 50%; top: 50%; width: 66px; height: 46px; margin: -23px 0 0 -33px; border-radius: 14px; background: rgba(230,33,23,.92); box-shadow: 0 8px 20px -6px rgba(0,0,0,.5); transition: transform .2s; }
+.yt-play::before { content: ""; position: absolute; left: 27px; top: 14px; border-style: solid; border-width: 9px 0 9px 15px; border-color: transparent transparent transparent #fff; }
+.yt-thumb:hover .yt-play { transform: scale(1.08); }
+.yt-label { display: inline-block; margin: 12px 0 0 12px; font: 700 12px var(--sans); letter-spacing: .04em; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 99px; }
+.has-video .card-no { display: none; }
+.has-video > h2 { margin-top: 10px; }
+
 /* ════════ 서신 바탕색 테마 (서신 머리말 theme: 로 고름) ════════ */
 .theme-spring { --paper: #f1f8ec; --top: #d9efcb; --line: #d6e7c9; --accent: #4a9636; --accent-soft: #e1f1d6; --g1: #8ccf6a; --g2: #4a9636; --glow: rgba(74,150,54,.6); --sky: linear-gradient(160deg, #ffffff 0%, #eef7e7 55%, #dbeecf 100%); }
 .theme-sunset { --paper: #fdf6ec; --top: #fde3bf; --line: #f0dcc0; --accent: #d9801a; --accent-soft: #fcebd2; --g1: #f7b844; --g2: #e07b1e; --glow: rgba(224,123,30,.6); --sky: linear-gradient(160deg, #ffffff 0%, #fdf1e0 55%, #fbe2c2 100%); }
@@ -225,5 +237,6 @@ main { max-width: 920px; margin: 0 auto; padding: 0 18px 72px; }
   body { background: #fff; }
   .progress, .letter-tools, .letter-nav, .scroll-hint, .bank-apps, .cms-btn, .copy-account, .toast { display: none; }
   .reveal, .card > *, .card img { opacity: 1 !important; transform: none !important; clip-path: none !important; }
+  .yt-play { display: none; }
   .card { box-shadow: none; border: 1px solid var(--line); break-inside: avoid; }
 }

@@ -149,7 +149,7 @@
       <h2>본문 카드 <span class="chip" id="cardCount">0장</span></h2>
       <div id="cards"></div>
       <button class="btn add-card" id="addCard" type="button">＋ 카드 추가</button>
-      <p class="hint">사진은 <b>＋ 사진</b>을 누르거나, Finder에서 사진 칸으로 <b>끌어다 놓거나</b>, 복사한 뒤 <b>⌘V</b>로 붙여넣어도 돼요.<br>카드 한 장 = 사진 0~2장 + 한 단락. 사진이 없으면 강조 카드로 보여요.<br>기도·후원 상자는 맨 아래에 자동으로 붙습니다.</p>
+      <p class="hint">사진은 <b>＋ 사진</b>을 누르거나, Finder에서 사진 칸으로 <b>끌어다 놓거나</b>, 복사한 뒤 <b>⌘V</b>로 붙여넣어도 돼요. 노래·설교·강의 영상은 <b>유튜브 링크</b> 칸에 주소를 넣으세요.<br>카드 한 장 = 사진 0~2장 + 한 단락. 사진이 없으면 강조 카드로 보여요.<br>기도·후원 상자는 맨 아래에 자동으로 붙습니다.</p>
     </section>
 
     <section class="panel publish">
@@ -185,9 +185,15 @@
 
   /* ---------- 상태 ---------- */
   var state = { title: '', date: today(), number: '', verse: '', summary: '', cover: null, cards: [newCard()] };
-  function srcOf(p) { return p.indexOf('data:') === 0 ? p : (p.charAt(0) === '/' ? '..' + p : '../images/' + p); }
+  function srcOf(p) { return (p.indexOf('data:') === 0 || /^https?:/.test(p)) ? p : (p.charAt(0) === '/' ? '..' + p : '../images/' + p); }
   function today() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
-  function newCard() { return { heading: '', text: '', photos: [] }; }
+  function newCard() { return { heading: '', text: '', photos: [], video: '' }; }
+  function ytId(u) {
+    u = String(u || '').trim(); if (!u) return '';
+    var m = u.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([A-Za-z0-9_-]{11})/);
+    if (m) return m[1];
+    return /^[A-Za-z0-9_-]{11}$/.test(u) ? u : '';
+  }
 
   try { var saved = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); if (saved && saved.cards) state = saved; } catch (e) {}
   try { $('#token').value = localStorage.getItem(TOKEN_KEY) || ''; } catch (e) {}
@@ -317,16 +323,26 @@
         '<button class="icon-btn" data-a="up" title="위로">↑</button><button class="icon-btn" data-a="down" title="아래로">↓</button>' +
         '<button class="btn btn-danger" data-a="del">삭제</button></div>' +
         '<div class="photos"></div>' +
+        '<label class="f">유튜브 링크 <small>(선택 — 넣으면 사진 대신 영상 카드가 돼요)</small></label><input class="fi" data-k="video" placeholder="https://youtu.be/… 또는 유튜브 주소">' +
+        '<p class="hint yt-msg" hidden></p>' +
         '<label class="f">소제목 <small>(선택)</small></label><input class="fi" data-k="heading" placeholder="예) 네 곳의 캠퍼스를 찾아가다">' +
         '<label class="f">글</label><textarea class="fi" data-k="text" placeholder="한 단락 정도의 글을 붙여넣으세요"></textarea>';
       var ph = el.querySelector('.photos');
+      var vmsg = el.querySelector('.yt-msg');
+      function vcheck() {
+        var has = !!String(c.video || '').trim(), id = ytId(c.video);
+        ph.style.display = has ? 'none' : '';
+        vmsg.hidden = !has; vmsg.textContent = has ? (id ? '✓ 영상을 찾았어요. 사진 대신 이 영상이 카드에 들어가요.' : '유튜브 주소를 확인해 주세요. (영상 페이지의 공유 → 링크 복사)') : '';
+        vmsg.style.color = id ? '#1f8a4c' : '#c0392b';
+      }
       c.photos.forEach(function (p, j) { ph.appendChild(thumb(srcOf(p), function () { c.photos.splice(j, 1); changed(); renderCards(); })); });
       droppable(ph, function () { return 2 - c.photos.length; }, function (d) { if (c.photos.length < 2) { c.photos.push(d); changed(); renderCards(); } });
       if (c.photos.length < 2) { var ad = photoAdder(function (d) { if (c.photos.length < 2) { c.photos.push(d); changed(); renderCards(); } }, true); ad._room = function () { return 2 - c.photos.length; }; ph.appendChild(ad); }
       el.querySelectorAll('[data-k]').forEach(function (f) {
         var k = f.getAttribute('data-k'); f.value = c[k] || '';
-        f.addEventListener('input', function () { c[k] = f.value; save(); renderPreview(); });
+        f.addEventListener('input', function () { c[k] = f.value; if (k === 'video') vcheck(); save(); renderPreview(); });
       });
+      vcheck();
       el.querySelector('[data-a="up"]').onclick = function () { if (i > 0) { state.cards.splice(i - 1, 0, state.cards.splice(i, 1)[0]); changed(); renderCards(); } };
       el.querySelector('[data-a="down"]').onclick = function () { if (i < state.cards.length - 1) { state.cards.splice(i + 1, 0, state.cards.splice(i, 1)[0]); changed(); renderCards(); } };
       el.querySelector('[data-a="del"]').onclick = function () {
@@ -359,11 +375,13 @@
       (state.verse ? '<p class="letter-verse">' + esc(state.verse) + '</p>' : '') + '<p class="scroll-hint">아래로 넘겨 주세요 ↓</p></div></header>';
     var n = 0;
     state.cards.forEach(function (c) {
-      if (!c.text && !c.heading && !c.photos.length) return;
+      var vid = ytId(c.video);
+      if (!c.text && !c.heading && !c.photos.length && !vid) return;
       n++;
-      var cls = 'card ' + (c.photos.length ? 'has-photo' : 'text-only') + (c.photos.length >= 2 ? ' two-photos' : '') + ' in';
+      var cls = 'card ' + (vid ? 'has-video' : c.photos.length ? 'has-photo' : 'text-only') + (!vid && c.photos.length >= 2 ? ' two-photos' : '') + ' in';
       h += '<section class="' + cls + '"><span class="card-no">' + pad(n) + '</span>';
-      if (c.photos.length) h += '<p>' + c.photos.map(function (p) { return '<img src="' + srcOf(p) + '" alt="">'; }).join('') + '</p>';
+      if (vid) h += '<div class="yt"><span class="yt-thumb" style="background-image:url(https://i.ytimg.com/vi/' + vid + '/hqdefault.jpg)"><span class="yt-play"></span></span><span class="yt-label">▶ 추천 영상</span></div>';
+      else if (c.photos.length) h += '<p>' + c.photos.map(function (p) { return '<img src="' + srcOf(p) + '" alt="">'; }).join('') + '</p>';
       if (c.heading) h += '<h2>' + esc(c.heading) + '</h2>';
       h += paras(c.text) + '</section>';
     });
@@ -403,9 +421,10 @@
     }
     (state.extraFm || []).forEach(function (l) { fm.push(l); });
     fm.push('---', '');
-    var blocks = state.cards.filter(function (c) { return c.text.trim() || c.heading.trim() || c.photos.length; }).map(function (c) {
-      var b = [];
-      if (c.photos.length) { b.push(c.photos.map(function (p) { if (p.indexOf('data:') !== 0) return '![](' + p + ')'; k++; var nm = base + stamp + '-' + k + '.jpg'; files.push({ path: 'images/' + nm, data: p }); return '![](' + nm + ')'; }).join('\n')); }
+    var blocks = state.cards.filter(function (c) { return c.text.trim() || c.heading.trim() || c.photos.length || ytId(c.video); }).map(function (c) {
+      var b = [], vid = ytId(c.video);
+      if (vid) b.push('{% include youtube.html id="' + vid + '" %}');
+      else if (c.photos.length) { b.push(c.photos.map(function (p) { if (p.indexOf('data:') !== 0) return '![](' + p + ')'; k++; var nm = base + stamp + '-' + k + '.jpg'; files.push({ path: 'images/' + nm, data: p }); return '![](' + nm + ')'; }).join('\n')); }
       if (c.heading.trim()) b.push('## ' + c.heading.trim());
       if (c.text.trim()) b.push(c.text.trim().replace(/\n\s*\n/g, '\n\n'));
       return b.join('\n\n');
@@ -415,7 +434,8 @@
   }
   function check() {
     if (!state.title.trim()) return '서신 제목을 써 주세요.';
-    if (!state.cards.some(function (c) { return c.text.trim() || c.photos.length; })) return '카드를 한 장 이상 채워 주세요.';
+    if (!state.cards.some(function (c) { return c.text.trim() || c.photos.length || ytId(c.video); })) return '카드를 한 장 이상 채워 주세요.';
+    if (state.cards.some(function (c) { return String(c.video || '').trim() && !ytId(c.video); })) return '유튜브 주소가 맞지 않는 카드가 있어요. 확인해 주세요.';
     return '';
   }
 
@@ -499,11 +519,12 @@
     var cards = body.split(/\n-{3,}\s*\n/).map(function (chunk) {
       var c = newCard(), text = [];
       chunk.trim().split('\n').forEach(function (ln) {
-        var im = ln.match(/^!\[[^\]]*\]\(([^)]+)\)\s*$/), hd = ln.match(/^##\s+(.*)$/);
-        if (im) c.photos.push(im[1].trim()); else if (hd && !c.heading) c.heading = hd[1].trim(); else text.push(ln);
+        var im = ln.match(/^!\[[^\]]*\]\(([^)]+)\)\s*$/), hd = ln.match(/^##\s+(.*)$/), yt = ln.match(/\{%\s*include\s+youtube\.html\s+id="([^"]+)"\s*%\}/);
+        if (yt) c.video = 'https://youtu.be/' + yt[1];
+        else if (im) c.photos.push(im[1].trim()); else if (hd && !c.heading) c.heading = hd[1].trim(); else text.push(ln);
       });
       c.text = text.join('\n').trim(); return c;
-    }).filter(function (c) { return c.text || c.heading || c.photos.length; });
+    }).filter(function (c) { return c.text || c.heading || c.photos.length || c.video; });
     return { meta: meta, extra: extra.filter(function (l) { return l.trim() !== ''; }), cards: cards.length ? cards : [newCard()] };
   }
   function needToken(st) {
@@ -534,6 +555,7 @@
         docs.forEach(function (d) {
           var parsed = parseMd(unb64(d.content)), fn = d.name.replace(/\.md$/, ''), date = fn.slice(0, 10), slug = fn.slice(11);
           var thumbSrc = parsed.meta.cover || (parsed.cards.find(function (c) { return c.photos.length; }) || { photos: [] }).photos[0];
+          var vc = !thumbSrc && parsed.cards.find(function (c) { return ytId(c.video); }); if (vc) thumbSrc = 'https://i.ytimg.com/vi/' + ytId(vc.video) + '/hqdefault.jpg';
           var row = document.createElement('div'); row.className = 'mg-item';
           row.innerHTML = '<div class="mg-thumb"' + (thumbSrc ? ' style="background-image:url(' + srcOf(thumbSrc) + ')"' : '') + '></div>' +
             '<div class="mg-info"><b>' + esc(parsed.meta.title || fn) + '</b><small>' + fmtDate(date) + (parsed.meta.number ? ' · 제' + esc(parsed.meta.number) + '호' : '') + '</small></div>' +
