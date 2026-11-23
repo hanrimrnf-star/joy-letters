@@ -77,6 +77,10 @@ layout: default
   } else {
     cards.forEach(function (c) { c.classList.add('in'); });
   }
+  document.querySelectorAll('.card img').forEach(function (img) {
+    function mark() { if (img.naturalHeight > img.naturalWidth) img.classList.add('portrait'); }
+    if (img.complete) mark(); else img.addEventListener('load', mark);
+  });
   var bar = document.querySelector('.progress span');
   function onScroll() {
     var h = document.documentElement;
