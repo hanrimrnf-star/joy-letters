@@ -2,6 +2,7 @@
 layout: letter
 title: "다사다망(多事多忙)"
 summary: "바빴다는 말밖에는 설명할 길이 없었던 2학기. 그러나 즐거운 마음으로 걸어온 한 학기의 소식을 전합니다."
+theme: snow
 cover: "/images/2026-11-profile.jpg"
 ---
 
