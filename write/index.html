@@ -202,16 +202,43 @@
   }
 
   /* ---------- 사진 줄이기 ---------- */
-  function shrink(file, cb) {
-    var img = new Image(), url = URL.createObjectURL(file);
+  function isHeic(f) { return /heic|heif/i.test(f.type) || /\.(heic|heif)$/i.test(f.name || ''); }
+  var heicLib = null;
+  function loadHeic() {
+    if (window.heic2any) return Promise.resolve(window.heic2any);
+    if (heicLib) return heicLib;
+    heicLib = new Promise(function (ok, no) {
+      var sc = document.createElement('script'); sc.src = 'heic2any.min.js';
+      sc.onload = function () { ok(window.heic2any); }; sc.onerror = function () { heicLib = null; no(new Error('load')); };
+      document.head.appendChild(sc);
+    });
+    return heicLib;
+  }
+  var busy = 0, noteAfter = '';
+  function working(d) { busy += d; if (busy > 0) toast('사진 준비 중… (' + busy + '장)'); }
+  function drawToJpeg(blob, cb, fail) {
+    var img = new Image(), url = URL.createObjectURL(blob);
     img.onload = function () {
       var max = 1600, w = img.naturalWidth, h = img.naturalHeight, r = Math.min(1, max / Math.max(w, h));
       var c = document.createElement('canvas'); c.width = Math.round(w * r); c.height = Math.round(h * r);
       c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
       URL.revokeObjectURL(url); cb(c.toDataURL('image/jpeg', 0.82));
     };
-    img.onerror = function () { toast('사진을 읽지 못했어요. JPG나 PNG로 다시 시도해 주세요.'); };
+    img.onerror = function () { URL.revokeObjectURL(url); fail(); };
     img.src = url;
+  }
+  function shrink(file, cb) {
+    working(1);
+    var done = function (d) { working(-1); if (!busy) { toast(noteAfter || '사진을 넣었어요'); noteAfter = ''; } cb(d); };
+    var fail = function (msg) { working(-1); toast(msg || '사진을 읽지 못했어요. 다른 사진으로 다시 시도해 주세요.'); };
+    drawToJpeg(file, done, function () {
+      if (!isHeic(file)) { fail(); return; }
+      /* 아이폰 사진(HEIC)은 브라우저가 못 읽는 경우가 많아 JPG로 바꿔서 넣음 */
+      toast('아이폰 사진을 변환하는 중… 잠시만요');
+      loadHeic().then(function (h) { return h({ blob: file, toType: 'image/jpeg', quality: 0.9 }); })
+        .then(function (out) { drawToJpeg(Array.isArray(out) ? out[0] : out, done, function () { fail(); }); })
+        .catch(function () { fail('아이폰 사진(HEIC)을 변환하지 못했어요. 사진 앱에서 JPG로 내보낸 뒤 넣어 주세요.'); });
+    });
   }
 
   /* ---------- 폼 그리기 ---------- */
@@ -223,8 +250,12 @@
   function photoAdder(onAdd, multiple) {
     var lab = document.createElement('label'); lab.className = 'ph-add';
     lab.innerHTML = '<b>＋</b>사진';
-    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; if (multiple) inp.multiple = true;
-    inp.addEventListener('change', function () { Array.prototype.slice.call(inp.files).forEach(function (f) { shrink(f, onAdd); }); inp.value = ''; });
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*,.heic,.heif'; if (multiple) inp.multiple = true;
+    inp.addEventListener('change', function () {
+      var files = Array.prototype.slice.call(inp.files), room = lab._room ? lab._room() : files.length;
+      if (files.length > room) { noteAfter = '카드 한 장에는 사진 2장까지예요. 앞의 ' + room + '장만 넣었어요.'; files = files.slice(0, room); }
+      files.forEach(function (f) { shrink(f, onAdd); }); inp.value = '';
+    });
     lab.appendChild(inp); return lab;
   }
   function thumb(src, onRemove) {
@@ -262,7 +293,7 @@
         '<label class="f">글</label><textarea class="fi" data-k="text" placeholder="한 단락 정도의 글을 붙여넣으세요"></textarea>';
       var ph = el.querySelector('.photos');
       c.photos.forEach(function (p, j) { ph.appendChild(thumb(srcOf(p), function () { c.photos.splice(j, 1); changed(); renderCards(); })); });
-      if (c.photos.length < 2) ph.appendChild(photoAdder(function (d) { if (c.photos.length < 2) { c.photos.push(d); changed(); renderCards(); } }, true));
+      if (c.photos.length < 2) { var ad = photoAdder(function (d) { if (c.photos.length < 2) { c.photos.push(d); changed(); renderCards(); } }, true); ad._room = function () { return 2 - c.photos.length; }; ph.appendChild(ad); }
       el.querySelectorAll('[data-k]').forEach(function (f) {
         var k = f.getAttribute('data-k'); f.value = c[k] || '';
         f.addEventListener('input', function () { c[k] = f.value; save(); renderPreview(); });
