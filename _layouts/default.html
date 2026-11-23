@@ -8,7 +8,7 @@
   <meta property="og:title" content="{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}">
   <meta property="og:description" content="{% if page.summary %}{{ page.summary }}{% else %}{{ site.description }}{% endif %}">
   <meta property="og:type" content="{% if page.layout == 'letter' %}article{% else %}website{% endif %}">
-  {% if page.cover %}<meta property="og:image" content="{{ page.cover | absolute_url }}">{% endif %}
+  <meta property="og:image" content="{% if page.cover %}{{ page.cover | absolute_url }}{% else %}{{ '/assets/logo.png' | absolute_url }}{% endif %}">
   <link rel="preload" href="{{ '/assets/fonts/GmarketSansBold.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{{ '/assets/fonts/Paperlogy-4Regular.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
@@ -16,7 +16,7 @@
 <body>
   <header class="masthead">
     <a class="brand" href="{{ '/' | relative_url }}">
-      <span class="brand-title">{{ site.title }}</span>
+      <img class="brand-logo" src="{{ '/assets/logo.png' | relative_url }}" alt="{{ site.title }} — 기쁨으로 여호와를 섬기며 노래하면서 그의 앞에 나아갈지어다 (시편 100편 2절)" width="1400" height="604">
       <span class="brand-sub">{{ site.subtitle }}</span>
     </a>
   </header>

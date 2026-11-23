@@ -28,8 +28,9 @@ a { color: inherit; }
 main { max-width: 920px; margin: 0 auto; padding: 0 18px 72px; }
 
 /* ── 머리 ── */
-.masthead { text-align: center; padding: 48px 22px 24px; }
-.brand { text-decoration: none; display: inline-flex; flex-direction: column; gap: 4px; }
+.masthead { text-align: center; padding: 34px 14px 22px; }
+.brand { text-decoration: none; display: inline-flex; flex-direction: column; align-items: center; gap: 6px; }
+.brand-logo { display: block; width: min(560px, 92vw); height: auto; }
 .brand-title { font-family: var(--title); font-weight: 700; color: var(--ink); font-size: clamp(28px, 6.5vw, 42px); letter-spacing: -0.02em; }
 .brand-sub { font-size: 13px; color: var(--ink-soft); letter-spacing: 0.14em; }
 .intro { text-align: center; color: var(--ink-soft); font-size: 15px; margin: 0 0 36px; }
@@ -197,7 +198,7 @@ main { max-width: 920px; margin: 0 auto; padding: 0 18px 72px; }
 .colophon-support { margin-top: 10px !important; }
 
 @media (max-width: 520px) {
-  .masthead { padding-top: 36px; }
+  .masthead { padding-top: 22px; }
   .deck { gap: 26px; }
   .card > p:not(:has(img)) { font-size: 16.5px; }
   .letter-nav { grid-template-columns: 1fr; }
