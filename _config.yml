@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────────
+#  사역서신 사이트 기본 설정 (여기만 고치면 전체에 반영됩니다)
+# ─────────────────────────────────────────────
+
+title: "부르심에 기쁨으로"
+subtitle: "최 간사의 사역서신"
+description: "SFC 캠퍼스 사역 현장에서 띄우는 기도와 감사의 편지"
+
+# 저장소 이름과 같아야 합니다 (예: 저장소가 joy-letters면 "/joy-letters")
+baseurl: "/joy-letters"
+url: "https://hanrimrnf-star.github.io"
+
+# 하단에 표시될 정보 — 필요 없는 줄은 비워 두면 숨겨집니다
+author: "최 간사"
+ministry: "SFC(학생신앙운동) 대학사역총무 · 전북지방"
+email: ""            # 예: "hello@example.com"
+support: ""          # 후원 안내 문구 (예: "○○은행 000-0000 (예금주)")
+
+# ── 아래는 건드리지 않으셔도 됩니다 ──
+timezone: Asia/Seoul
+lang: ko
+markdown: kramdown
+permalink: /letters/:year/:month/:title/
+excerpt_separator: "<!--more-->"
+exclude:
+  - README.md
+  - 작성법.md

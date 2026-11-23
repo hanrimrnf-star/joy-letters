@@ -1,0 +1,159 @@
+:root {
+  --paper: #fbf7ef;
+  --card: #fffdf8;
+  --ink: #2b2620;
+  --ink-soft: #6b6157;
+  --line: #e6ddcd;
+  --accent: #b5562f;      /* 따뜻한 테라코타 */
+  --accent-soft: #f3e3d6;
+  --serif: "Gowun Batang", "Nanum Myeongjo", serif;
+  --sans: "Noto Sans KR", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+a { color: inherit; }
+main { max-width: 680px; margin: 0 auto; padding: 0 22px 64px; }
+
+/* ── 머리 ── */
+.masthead { text-align: center; padding: 56px 22px 28px; }
+.brand { text-decoration: none; display: inline-flex; flex-direction: column; gap: 6px; }
+.brand-title {
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(30px, 7vw, 44px); letter-spacing: -0.02em;
+}
+.brand-sub { font-size: 14px; color: var(--ink-soft); letter-spacing: 0.12em; }
+.brand-title::after {
+  content: ""; display: block; width: 36px; height: 2px;
+  background: var(--accent); margin: 14px auto 2px;
+}
+
+.intro { text-align: center; color: var(--ink-soft); font-size: 15px; margin-bottom: 36px; }
+.empty { text-align: center; color: var(--ink-soft); padding: 48px 0; font-family: var(--serif); }
+
+/* ── 공통 메타 ── */
+.letter-meta { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--ink-soft); margin: 0; }
+.letter-no {
+  color: var(--accent); font-weight: 700; font-size: 12px; letter-spacing: 0.04em;
+}
+
+/* ── 최근 서신 카드 ── */
+.latest {
+  display: flex; flex-direction: column; gap: 10px;
+  text-decoration: none; background: var(--card);
+  border: 1px solid var(--line); border-radius: 14px;
+  padding: 30px 28px; box-shadow: 0 1px 0 var(--line), 0 12px 30px -22px rgba(80,50,20,.35);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.latest:hover { transform: translateY(-2px); box-shadow: 0 1px 0 var(--line), 0 18px 34px -20px rgba(80,50,20,.4); }
+.latest-label {
+  align-self: flex-start; font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+  color: var(--accent); background: var(--accent-soft); padding: 3px 10px; border-radius: 99px;
+}
+.latest-title { font-family: var(--serif); font-size: 26px; font-weight: 700; line-height: 1.35; }
+.latest-excerpt { color: var(--ink-soft); font-size: 15px; }
+.read-more { font-size: 14px; font-weight: 500; color: var(--accent); }
+
+/* ── 지난 서신 목록 ── */
+.archive { margin-top: 52px; }
+.archive h2 { font-family: var(--serif); font-size: 18px; margin: 0 0 8px; }
+.year h3 { font-size: 13px; color: var(--ink-soft); font-weight: 500; letter-spacing: .1em; margin: 24px 0 4px; }
+.year ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.year li a {
+  display: flex; gap: 18px; align-items: baseline; padding: 14px 4px;
+  border-bottom: 1px solid var(--line); text-decoration: none;
+}
+.year li a:hover .row-title { color: var(--accent); }
+.row-date { flex: 0 0 44px; font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.row-title { font-family: var(--serif); font-size: 17px; transition: color .15s; }
+
+/* ── 서신 본문 ── */
+.letter-head { text-align: center; margin-bottom: 34px; }
+.letter-head .letter-meta { justify-content: center; }
+.letter-head h1 {
+  font-family: var(--serif); font-size: clamp(26px, 6vw, 34px);
+  line-height: 1.35; margin: 14px 0 10px; letter-spacing: -0.01em;
+}
+.letter-verse { font-family: var(--serif); color: var(--ink-soft); font-size: 15px; margin: 0; }
+
+.letter-cover { margin: 0 0 32px; }
+.letter-cover img { width: 100%; border-radius: 12px; display: block; }
+
+.letter-body { font-family: var(--serif); font-size: 17.5px; line-height: 1.95; }
+.letter-body p { margin: 0 0 1.25em; }
+.letter-body h2 { font-size: 20px; margin: 2.2em 0 .7em; }
+.letter-body h3 { font-size: 18px; margin: 1.8em 0 .6em; }
+.letter-body img { max-width: 100%; border-radius: 10px; display: block; margin: 1.6em auto; }
+.letter-body blockquote {
+  margin: 1.6em 0; padding: 4px 0 4px 20px; border-left: 3px solid var(--accent);
+  color: var(--ink-soft);
+}
+.letter-body blockquote p:last-child { margin-bottom: 0; }
+.letter-body hr { border: 0; text-align: center; margin: 2.4em 0; }
+.letter-body hr::before { content: "✦  ✦  ✦"; color: var(--accent); font-size: 12px; letter-spacing: .3em; }
+.letter-body ul, .letter-body ol { padding-left: 1.3em; }
+.letter-body li { margin-bottom: .4em; }
+
+/* ── 기도제목 ── */
+.prayer {
+  margin: 44px 0 0; padding: 26px 28px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 14px;
+}
+.prayer h2 { font-family: var(--serif); font-size: 19px; margin: 0 0 12px; color: var(--accent); }
+.prayer ol { margin: 0; padding-left: 1.3em; font-family: var(--serif); font-size: 16.5px; }
+.prayer li { margin-bottom: .55em; }
+.prayer li:last-child { margin-bottom: 0; }
+
+/* ── 도구 · 이동 ── */
+.letter-tools { display: flex; gap: 10px; justify-content: center; margin: 40px 0 0; }
+.letter-tools button {
+  font: 500 13px var(--sans); color: var(--ink-soft); background: transparent;
+  border: 1px solid var(--line); border-radius: 99px; padding: 8px 16px; cursor: pointer;
+}
+.letter-tools button:hover { border-color: var(--accent); color: var(--accent); }
+
+.letter-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 44px; }
+.letter-nav a {
+  display: flex; flex-direction: column; gap: 4px; text-decoration: none;
+  padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+  font-family: var(--serif); font-size: 15px; line-height: 1.45;
+}
+.letter-nav a:hover { border-color: var(--accent); }
+.letter-nav small { font-family: var(--sans); font-size: 12px; color: var(--ink-soft); }
+.letter-nav .next { text-align: right; }
+.back { text-align: center; margin-top: 28px; font-size: 14px; }
+.back a { color: var(--ink-soft); text-decoration: none; }
+.back a:hover { color: var(--accent); }
+
+/* ── 바닥 ── */
+.colophon {
+  text-align: center; font-size: 13px; color: var(--ink-soft);
+  border-top: 1px solid var(--line); padding: 32px 22px 48px; max-width: 680px; margin: 0 auto;
+}
+.colophon p { margin: 2px 0; }
+.colophon-name { font-family: var(--serif); font-size: 15px; color: var(--ink); }
+.colophon-support { margin-top: 10px !important; }
+
+@media (max-width: 520px) {
+  .masthead { padding-top: 40px; }
+  .latest { padding: 24px 20px; }
+  .latest-title { font-size: 22px; }
+  .letter-body { font-size: 16.5px; }
+  .letter-nav { grid-template-columns: 1fr; }
+  .letter-nav .next { text-align: left; }
+}
+
+@media print {
+  body { background: #fff; }
+  .letter-tools, .letter-nav, .back, .colophon-support { display: none; }
+  .masthead { padding: 0 0 16px; }
+  .prayer { break-inside: avoid; }
+}

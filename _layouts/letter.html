@@ -1,0 +1,54 @@
+---
+layout: default
+---
+<article class="letter">
+  <div class="letter-head">
+    <p class="letter-meta">
+      {% if page.number %}<span class="letter-no">제{{ page.number }}호</span>{% endif %}
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%Y년 %-m월 %-d일" }}</time>
+    </p>
+    <h1>{{ page.title }}</h1>
+    {% if page.verse %}<p class="letter-verse">{{ page.verse }}</p>{% endif %}
+  </div>
+
+  {% if page.cover %}
+  <figure class="letter-cover"><img src="{{ page.cover | relative_url }}" alt=""></figure>
+  {% endif %}
+
+  <div class="letter-body">
+    {{ content }}
+  </div>
+
+  {% if page.prayer %}
+  <section class="prayer">
+    <h2>함께 기도해 주세요</h2>
+    <ol>
+      {% for item in page.prayer %}<li>{{ item }}</li>{% endfor %}
+    </ol>
+  </section>
+  {% endif %}
+
+  <div class="letter-tools">
+    <button type="button" onclick="copyLink(this)">링크 복사</button>
+    <button type="button" onclick="window.print()">인쇄 · PDF 저장</button>
+  </div>
+
+  <nav class="letter-nav">
+    {% if page.previous %}
+    <a class="prev" href="{{ page.previous.url | relative_url }}"><small>이전 서신</small>{{ page.previous.title }}</a>
+    {% else %}<span></span>{% endif %}
+    {% if page.next %}
+    <a class="next" href="{{ page.next.url | relative_url }}"><small>다음 서신</small>{{ page.next.title }}</a>
+    {% else %}<span></span>{% endif %}
+  </nav>
+  <p class="back"><a href="{{ '/' | relative_url }}">← 서신 목록으로</a></p>
+</article>
+
+<script>
+function copyLink(btn) {
+  var url = location.href;
+  var done = function () { var t = btn.textContent; btn.textContent = '복사했어요'; setTimeout(function () { btn.textContent = t; }, 1600); };
+  if (navigator.clipboard) { navigator.clipboard.writeText(url).then(done, function () { prompt('링크를 복사하세요', url); }); }
+  else { prompt('링크를 복사하세요', url); }
+}
+</script>
