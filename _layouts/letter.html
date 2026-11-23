@@ -42,27 +42,67 @@ layout: default
     {%- endif -%}
   {% endfor %}
 
-  {% if page.prayer %}
-  <section class="card card-prayer reveal">
-    <h2>함께 기도해 주세요</h2>
-    <ol>
-      {% for item in page.prayer %}<li>{{ item }}</li>{% endfor %}
-    </ol>
-  </section>
-  {% endif %}
-
   <footer class="card card-end reveal">
     <p class="end-sign">{% if page.sign %}{{ page.sign }}{% else %}주 안에서, {{ site.author }} 드림{% endif %}</p>
     <div class="letter-tools">
       <button type="button" onclick="copyLink(this)">링크 복사</button>
       <a href="{{ '/' | relative_url }}">다른 서신 보기</a>
     </div>
+    {% if page.previous or page.next %}
     <nav class="letter-nav">
       {% if page.previous %}<a href="{{ page.previous.url | relative_url }}"><small>← 이전 서신</small>{{ page.previous.title }}</a>{% else %}<span></span>{% endif %}
       {% if page.next %}<a class="next" href="{{ page.next.url | relative_url }}"><small>다음 서신 →</small>{{ page.next.title }}</a>{% else %}<span></span>{% endif %}
     </nav>
+    {% endif %}
   </footer>
+
+  {%- if page.prayer %}{% assign prayers = page.prayer %}{% else %}{% assign prayers = site.prayer %}{% endif -%}
+  {% if prayers %}
+  <section class="card card-prayer reveal" id="prayer">
+    <h2>함께 기도해주세요</h2>
+    <ol>
+      {% for item in prayers %}
+      <li>{% if item.title %}<strong>{{ item.title }}</strong>{% if item.desc %}<span>{{ item.desc }}</span>{% endif %}{% else %}{{ item }}{% endif %}</li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% endif %}
+
+  {% assign sp = site.support %}
+  {% if sp.account %}
+  <section class="card card-support reveal" id="support">
+    <h2>{{ sp.title }}</h2>
+    {% for line in sp.lines %}<p>{{ line }}</p>{% endfor %}
+
+    <div class="account">
+      <div class="account-info">
+        <span class="account-bank">{{ sp.bank }}</span>
+        <span class="account-no">{{ sp.account }}</span>
+        <span class="account-holder">예금주 {{ sp.holder }}</span>
+      </div>
+      <button type="button" class="copy-account" data-account="{{ sp.account }}">계좌 복사</button>
+    </div>
+
+    <div class="bank-apps">
+      <p class="bank-apps-title">은행 앱으로 바로 후원하기</p>
+      <div class="bank-grid">
+        <a href="#" class="bank-btn" data-app="toss">토스</a>
+        <a href="#" class="bank-btn" data-app="kakaobank">카카오뱅크</a>
+        <a href="#" class="bank-btn" data-app="nh">NH올원뱅크</a>
+        <a href="#" class="bank-btn" data-app="kb">KB스타뱅킹</a>
+        <a href="#" class="bank-btn" data-app="shinhan">신한 SOL</a>
+        <a href="#" class="bank-btn" data-app="woori">우리WON</a>
+      </div>
+      <p class="bank-note">누르면 계좌번호가 자동으로 복사되고 앱이 열려요. 이체 화면에서 붙여넣기만 하시면 됩니다.</p>
+    </div>
+
+    {% if sp.cms_url %}
+    <a class="cms-btn" href="{{ sp.cms_url }}" target="_blank" rel="noopener">{{ sp.cms_label }} →</a>
+    {% endif %}
+  </section>
+  {% endif %}
 </article>
+<div class="toast" role="status" aria-live="polite"></div>
 
 <script>
 (function () {
@@ -88,6 +128,44 @@ layout: default
     bar.style.transform = 'scaleX(' + Math.min(1, p) + ')';
   }
   window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+})();
+(function () {
+  var box = document.getElementById('support'); if (!box) return;
+  var account = box.querySelector('.copy-account').getAttribute('data-account');
+  var digits = account.replace(/[^0-9]/g, '');
+  var bank = box.querySelector('.account-bank').textContent.trim();
+  var toastEl = document.querySelector('.toast'), tt;
+  function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(tt); tt = setTimeout(function () { toastEl.classList.remove('show'); }, 2600); }
+  function copy(text, cb) {
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(cb, fallback); } else { fallback(); }
+    function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) {} document.body.removeChild(t); cb && cb(); }
+  }
+  box.querySelector('.copy-account').addEventListener('click', function () {
+    copy(account, function () { toast(bank + ' ' + account + ' 복사했어요'); });
+  });
+  var apps = {
+    toss: 'supertoss://send?bank=' + encodeURIComponent(bank) + '&accountNo=' + digits + '&origin=qr',
+    kakaobank: 'kakaobank://',
+    nh: 'nhallonebank://',
+    kb: 'kbbank://',
+    shinhan: 'shinhan-sr-ansimclick://',
+    woori: 'wooribank://'
+  };
+  var mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (!mobile) { box.querySelector('.bank-note').textContent = '휴대폰에서 이 페이지를 열면 은행 앱으로 바로 연결돼요. 컴퓨터에서는 계좌 복사를 이용해 주세요.'; }
+  box.querySelectorAll('.bank-btn').forEach(function (b) {
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      var key = b.getAttribute('data-app');
+      copy(digits, function () {});
+      if (!mobile) { toast('계좌번호를 복사했어요. 은행 앱은 휴대폰에서 열려요.'); return; }
+      toast(key === 'toss' ? '토스를 여는 중… (계좌가 자동 입력돼요)' : '계좌번호를 복사했어요. 앱을 여는 중…');
+      var left = false; var onHide = function () { left = true; };
+      document.addEventListener('visibilitychange', onHide, { once: true });
+      window.location.href = apps[key];
+      setTimeout(function () { if (!left && !document.hidden) toast('앱이 열리지 않으면 설치 여부를 확인해 주세요. 계좌번호는 복사돼 있어요.'); }, 1800);
+    });
+  });
 })();
 function copyLink(btn) {
   var url = location.href;
