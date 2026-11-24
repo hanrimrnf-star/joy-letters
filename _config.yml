@@ -15,6 +15,10 @@ author: "최한림 간사"
 ministry: "SFC(학생신앙운동) 대학청년사역부 총무"
 email: ""            # 예: "hello@example.com"
 
+# ── 방문 통계 (GoatCounter) ──
+#   goatcounter.com 에서 만든 주소의 앞부분 (예: joy-letters.goatcounter.com 이면 "joy-letters")
+goatcounter: ""
+
 # ── 모든 서신 맨 아래에 붙는 '기도 부탁' 상자 ──
 #   (특정 서신에만 다른 기도제목을 쓰려면 그 서신 머리말에 prayer: 를 넣으면 됩니다)
 prayer:

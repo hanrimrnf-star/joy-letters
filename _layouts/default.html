@@ -30,5 +30,17 @@
     {% if site.ministry != "" %}<p>{{ site.ministry }}</p>{% endif %}
     {% if site.email != "" %}<p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>{% endif %}
   </footer>
+{% if site.goatcounter != "" %}
+<script>
+  /* 관리 화면을 쓴 기기(간사님 기기)는 방문 수에서 빼기 */
+  (function () {
+    var me = false; try { me = localStorage.getItem('joyAdmin') === '1'; } catch (e) {}
+    if (me) return;
+    var s = document.createElement('script'); s.async = true; s.src = '//gc.zgo.at/count.js';
+    s.setAttribute('data-goatcounter', 'https://{{ site.goatcounter }}.goatcounter.com/count');
+    document.body.appendChild(s);
+  })();
+</script>
+{% endif %}
 </body>
 </html>

@@ -112,6 +112,9 @@
   .mg-actions .edit { background: var(--accent-soft); border-color: var(--accent-soft); color: var(--accent); }
   .mg-actions .del { color: #c0392b; }
   .mg-actions .del.warn { background: #c0392b; color: #fff; border-color: #c0392b; }
+  .mg-views { display: inline-block; margin-left: 8px; font: 700 12px var(--sans); color: var(--accent); background: var(--accent-soft); padding: 2px 9px; border-radius: 99px; }
+  .mg-total { background: #fff; border-radius: 16px; padding: 14px 18px; margin-bottom: 12px; box-shadow: var(--shadow); font-size: 14px; color: var(--ink-soft); }
+  .mg-total b { font: 700 22px var(--title); color: var(--ink); margin: 0 4px; }
   .mg-empty { text-align: center; color: var(--ink-soft); padding: 40px 10px; background: #fff; border-radius: 16px; }
   @media (max-width: 560px) { .mg-item { flex-wrap: wrap; } .mg-actions { width: 100%; justify-content: stretch; } .mg-actions > * { flex: 1; text-align: center; } }
 </style>
@@ -128,7 +131,7 @@
 </header>
 
 <section class="mg" id="manage" hidden>
-  <div class="mg-head"><h2>내 서신 관리</h2><button class="btn btn-ghost" id="backBtn" type="button">← 글쓰기로</button></div>
+  <div class="mg-head"><h2>내 서신 관리</h2><a class="btn btn-ghost" id="statsLink" target="_blank" rel="noopener" hidden>방문 통계 자세히 ↗</a><button class="btn btn-ghost" id="backBtn" type="button">← 글쓰기로</button></div>
   <div class="status" id="mgStatus"></div>
   <div class="mg-list" id="mgList"></div>
   <p class="hint">삭제해도 GitHub 기록에 남아 있어서, 필요하면 되살릴 수 있어요. 서신에 쓴 사진 파일은 지우지 않고 남겨 둡니다.</p>
@@ -204,6 +207,8 @@
 <script>
 (function () {
   var OWNER = 'hanrimrnf-star', REPO = 'joy-letters', BRANCH = 'main';
+  var GC = '';   /* GoatCounter 주소 앞부분 (예: 'joy-letters') — 비어 있으면 통계 꺼짐 */
+  try { localStorage.setItem('joyAdmin', '1'); } catch (e) {}   /* 이 기기의 방문은 통계에서 제외 */
   var THEMES = [['sky', '하늘', '#d9eefd', '#2f86d4'], ['spring', '봄빛 연두', '#d9efcb', '#4a9636'], ['sunset', '노을', '#fde3bf', '#e07b1e'], ['lavender', '라벤더', '#e4dbfa', '#7556c4'], ['snow', '겨울 눈꽃', '#dfe5ed', '#47698c']];
   var DRAFT_KEY = 'joyLetterDraft', TOKEN_KEY = 'joyLetterToken';
   var $ = function (s) { return document.querySelector(s); };
@@ -902,7 +907,7 @@
           var vc = !thumbSrc && parsed.cards.find(function (c) { return ytId(c.video); }); if (vc) thumbSrc = 'https://i.ytimg.com/vi/' + ytId(vc.video) + '/hqdefault.jpg';
           var row = document.createElement('div'); row.className = 'mg-item';
           row.innerHTML = '<div class="mg-thumb"' + (thumbSrc ? ' style="background-image:url(' + srcOf(thumbSrc) + ')"' : '') + '></div>' +
-            '<div class="mg-info"><b>' + esc(parsed.meta.title || fn) + '</b><small>' + fmtDate(date) + (parsed.meta.number ? ' · 제' + esc(parsed.meta.number) + '호' : '') + '</small></div>' +
+            '<div class="mg-info"><b>' + esc(parsed.meta.title || fn) + '</b><small>' + fmtDate(date) + (parsed.meta.number ? ' · 제' + esc(parsed.meta.number) + '호' : '') + '</small>' + (GC ? '<span class="mg-views" data-path="/' + REPO + '/letters/' + date.slice(0, 4) + '/' + date.slice(5, 7) + '/' + slug + '/">조회 …</span>' : '') + '</div>' +
             '<div class="mg-actions"><a href="' + postUrl(date, slug) + '" target="_blank" rel="noopener">보기</a><button class="edit" type="button">수정</button><button class="del" type="button">삭제</button></div>';
           row.querySelector('.edit').onclick = function () {
             state = { title: parsed.meta.title || '', date: date, number: parsed.meta.number || '', verse: parsed.meta.verse || '', summary: parsed.meta.summary || '',
@@ -920,9 +925,32 @@
           };
           list.appendChild(row);
         });
+        loadViews();
       });
     }).catch(function (e) { mgStatus(e.status === 401 ? '접근 키가 맞지 않아요. 설정에서 다시 넣어 주세요.' : '목록을 불러오지 못했어요: ' + e.message, 'err'); });
   }
+  function gcCount(path) {
+    return fetch('https://' + GC + '.goatcounter.com/counter/' + encodeURIComponent(path) + '.json')
+      .then(function (r) { return r.ok ? r.json() : { count: '0' }; }).then(function (j) { return String(j.count || '0'); })
+      .catch(function () { return null; });
+  }
+  function loadViews() {
+    if (!GC) return;
+    var tags = document.querySelectorAll('.mg-views'), sum = 0, ok = true;
+    var old = document.querySelector('.mg-total'); if (old) old.remove();
+    Promise.all(Array.prototype.map.call(tags, function (t) {
+      return gcCount(t.getAttribute('data-path')).then(function (c) {
+        if (c === null) { ok = false; t.textContent = '조회 ?'; return; }
+        t.textContent = '조회 ' + c + '회'; sum += parseInt(c.replace(/[^0-9]/g, ''), 10) || 0;
+      });
+    })).then(function () {
+      var box = document.createElement('div'); box.className = 'mg-total';
+      box.innerHTML = ok ? '지금까지 서신 조회 <b>' + sum.toLocaleString() + '</b>회 <small>(간사님 기기에서 본 것은 빼고 셉니다)</small>'
+        : '조회 수를 불러오지 못했어요. GoatCounter 설정에서 ‘Allow adding visitor counts on your website’를 켜 주세요.';
+      $('#mgList').parentNode.insertBefore(box, $('#mgList'));
+    });
+  }
+  if (GC) { var sl = $('#statsLink'); sl.href = 'https://' + GC + '.goatcounter.com'; sl.hidden = false; }
   $('#manageBtn').onclick = function () { showView('manage'); loadList(); };
   $('#backBtn').onclick = function () { showView('write'); };
   $('#cancelEdit').onclick = function () {
