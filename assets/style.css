@@ -47,6 +47,17 @@ main { max-width: 920px; margin: 0 auto; padding: 0 18px 72px; }
 .reveal { opacity: 0; transform: translateY(56px) scale(.965); transition: opacity .9s var(--ease), transform .9s var(--ease); }
 .reveal.in { opacity: 1; transform: none; }
 
+/* 상단 타이틀이 서서히 나타나는 효과 */
+@keyframes logoIn {
+  0%   { opacity: 0; transform: translateY(16px) scale(.97); filter: blur(10px); }
+  75%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes subIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.masthead .brand-logo { animation: logoIn 2.4s cubic-bezier(.25,.6,.25,1) .2s both; }
+.masthead .brand-sub { animation: subIn 1.2s ease 1.9s both; }
+.masthead + main .intro { animation: subIn 1.2s ease 2.3s both; }
+
 /* ════════ 목록: 서신 카드 선반 ════════ */
 .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 22px; }
 .shelf-card {
@@ -229,6 +240,7 @@ main { max-width: 920px; margin: 0 auto; padding: 0 18px 72px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .masthead .brand-logo, .masthead .brand-sub, .masthead + main .intro { animation: none !important; }
   .reveal, .card img, .card > *, .cover-bg { transition: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
   .scroll-hint { animation: none; }
 }
