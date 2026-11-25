@@ -10,6 +10,15 @@ description: "SFC 캠퍼스 사역 현장에서 띄우는 기도와 감사의 �
 baseurl: "/joy-letters"
 url: "https://hanrimrnf-star.github.io"
 
+# 상단 로고 이미지 (비워 두면 제목 글자로 표시)
+logo: "/assets/logo.png"
+# 로고 이미지를 못 읽는 사람(화면 낭독기 등)에게 읽어 줄 설명
+logo_alt: "부르심에 기쁨으로 — 기쁨으로 여호와를 섬기며 노래하면서 그의 앞에 나아갈지어다 (시편 100편 2절)"
+
+# 저장소 정보 — 비워 두면 GitHub이 자동으로 채웁니다
+github_user: ""
+github_repo: ""
+
 # 하단에 표시될 정보 — 필요 없는 줄은 비워 두면 숨겨집니다
 author: "최한림 간사"
 ministry: "SFC(학생신앙운동) 대학청년사역부 총무"
